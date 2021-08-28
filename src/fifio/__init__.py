@@ -6,7 +6,6 @@ from io import RawIOBase
 from mmap import mmap
 from threading import Condition
 from threading import Lock
-from typing import Any
 from typing import Union
 
 __author__ = "Simon Lachinger"
@@ -147,6 +146,8 @@ class SharedBuffer:
                 bytes_from_start = length - bytes_until_overrun
                 if bytes_from_start:
                     b[bytes_until_overrun:length] = self._buffer[0:bytes_from_start]
+
+                self.read_pos += length
 
         if available == 0:
             # input stream closed?
