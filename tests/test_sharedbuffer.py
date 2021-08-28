@@ -20,7 +20,7 @@ class IndicateEofTestCase(TestCase):
         self.assertTrue(buffer.eof)
 
     @pytest.mark.asyncio
-    def test_indicate_eof_notifes_empty(self):
+    def test_indicate_eof_notifies_empty(self):
         """test if :py:meth:`fifoio.SharedBuffer.indicate_eof` actually notifies potentially waiting readers"""
         buffer = SharedBuffer(buffer_size=100)
         waiting = []
