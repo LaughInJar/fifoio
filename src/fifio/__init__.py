@@ -24,12 +24,11 @@ ONE_MEGABYTE = 1024 * ONE_KILOBYTE
 
 
 class SharedBuffer:
-    """ """
+    """A shared buffer used by the read & write stream pair created by :py:meth:`create_pair`"""
 
     def __init__(self, buffer_size=ONE_MEGABYTE):
         """
-
-        :param buffer_size:
+        :param buffer_size: the size of the circular buffer in bytes
         """
         self._buffer = memoryview(bytearray(buffer_size))
         self.buffer_size = buffer_size
@@ -41,7 +40,9 @@ class SharedBuffer:
         self.eof = False
 
     def inidicate_eof(self):
-        """ """
+        """The if the writeable stream is closed it will use this method to indicate that no more bytes are
+        incoming.
+        """
         self.eof = True
         with self._empty:
             self._empty.notify()
@@ -55,8 +56,20 @@ class SharedBuffer:
         """bytes available for reading"""
         return self.write_pos - self.read_pos
 
-    def write(self, b: Union[bytes, bytearray, memoryview, array[Any], mmap]) -> int:
-        """"""
+    def write(self, b: Union[bytes, bytearray, memoryview, array, mmap]) -> int:
+        """override the method from :py:class:`io.RawIOBase`
+
+        :param b: a bytes like object to write to the stream
+
+        It will acquire a lock and then check the number of free bytes in the (circular) buffer.
+
+        #. if there are free bytes, write min(free bytes, length of `b`) to the stream, return the number of written
+           bytes
+
+        #. if there are no free bytes in the buffer, wait until bytes were read from the paired reader stream
+
+        #. notify the a potentially waiting reader that bytes are available
+        """
         length = 0
 
         # for all buffer manipulations, lock
@@ -96,7 +109,20 @@ class SharedBuffer:
 
         return length
 
-    def readinto(self, b: Union[bytearray, memoryview, array[Any], mmap]) -> int:
+    def readinto(self, b: Union[bytearray, memoryview, array, mmap]) -> int:
+        """override the method from :py:class:`io.RawIOBase`
+
+        :param b: the bytearray (or memoryview, ...) object to read into
+
+
+        At first, it will acquire a lock an then check the number of available bytes to read
+
+        #. if there are bytes available read min(len(b), available bytes) into the buffer
+
+        #. if there are no bytes available, wait for a write event an try again
+
+        #. notify potentially waiting writer that some bytes were read
+        """
         length = 0
 
         # for all buffer manipulation, lock
@@ -154,7 +180,7 @@ class Writeable(RawIOBase):
     def seekable(self) -> bool:
         return False
 
-    def write(self, b: Union[bytes, bytearray, memoryview, array[Any], mmap]) -> int:
+    def write(self, b: Union[bytes, bytearray, memoryview, array, mmap]) -> int:
         return self.buffer.write(b)
 
     def close(self):
@@ -179,12 +205,8 @@ class Readable(RawIOBase):
     def seekable(self):
         return False
 
-    def readinto(self, b: Union[bytearray, memoryview, array[Any], mmap]) -> int:
+    def readinto(self, b: Union[bytearray, memoryview, array, mmap]) -> int:
         return self.buffer.readinto(b)
-
-    def close(self):
-        self.buffer.inidicate_eof()
-        super().close()
 
 
 def create_pair(size=ONE_MEGABYTE):
