@@ -1,5 +1,5 @@
 """
-
+A fifo buffer that can be written to and read using the RawIOBase protocol
 """
 from array import array
 from io import RawIOBase

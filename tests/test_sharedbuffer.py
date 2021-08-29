@@ -7,7 +7,7 @@ from unittest import TestCase
 
 import pytest
 
-from fifio import SharedBuffer
+from fifoio import SharedBuffer
 
 
 class IndicateEofTestCase(TestCase):
