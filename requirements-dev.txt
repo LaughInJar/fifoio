@@ -1,7 +1,10 @@
 black
-mypy
-isort
+build
+coverage
 flake8
+isort
+mypy
 pytest
 pytest-asyncio
-coverage
+setuptools
+wheel
