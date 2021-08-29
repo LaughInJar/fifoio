@@ -198,10 +198,10 @@ class Readable(RawIOBase):
         self.buffer = buffer
 
     def writable(self):
-        return True
+        return False
 
     def readable(self):
-        return False
+        return True
 
     def seekable(self):
         return False
