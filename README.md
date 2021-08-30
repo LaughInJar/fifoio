@@ -1,10 +1,26 @@
 # fifoio
 Write &amp; Read to the same buffer (memoryview) with to streams that track their separate positions
 
-Is is performant? No. It's in pure python (as opposed to C) and uses locks so that read & write operations do not
-conflict with each other.
+Is is performant? Somewhat. It's in pure python (as opposed to C) and uses locks so that read & write operations do not
+conflict with each other. But in a test using httpx's streaming requests and a /dev/null target it was somehow faster
+then `wget`.
 
-Example:
+## Usage
+
+use the `create_pair()` method to get two streams, one to write into, one to read from.
+
+```python
+from fifoio import create_pair
+
+write, read = create_pair()
+```
+
+Note, that it implements the `write` protocol of `io.RawIOBase`. This means that if not all bytes could be written due
+to the underlying buffer being close to being full, it will try to write the maximum number of bytes and will return
+the number of bytes being written. YOu must then try again with the remaining bytes. If you do not want to bother with
+this, just wrap it in a `io.BufferedWritter`.
+
+## Example:
 ```python
 import asyncio
 from io import BufferedReader
