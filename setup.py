@@ -1,5 +1,13 @@
 import setuptools
-import fifoio
+
+try:
+    import fifoio
+except ModuleNotFoundError:
+    import sys
+    import os
+
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+    import fifoio
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -10,7 +18,7 @@ setuptools.setup(
     author=fifoio.__author__,
     author_email=fifoio.__email__,
     description=fifoio.__doc__,
-    long_description=fifoio.__doc__,
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/LaughInJar/fifoio",
     project_urls={
