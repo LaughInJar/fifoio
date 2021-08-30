@@ -12,13 +12,23 @@ use the `create_pair()` method to get two streams, one to write into, one to rea
 ```python
 from fifoio import create_pair
 
-write, read = create_pair()
+writeable, readable = create_pair()
+writeable.write(b"abc")
+result = bytearray(3)
+readable.readinto(result)
+assert result, b"abc"
+
+writeable.close()
+readable.close()
+
 ```
 
 Note, that it implements the `write` protocol of `io.RawIOBase`. This means that if not all bytes could be written due
 to the underlying buffer being close to being full, it will try to write the maximum number of bytes and will return
 the number of bytes being written. YOu must then try again with the remaining bytes. If you do not want to bother with
 this, just wrap it in a `io.BufferedWritter`.
+
+Also note that writing and reading are blocking if the underlying buffer is full or empty. 
 
 ## Example:
 ```python
